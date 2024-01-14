@@ -1,0 +1,6 @@
+{{ .Header.ToString }}
+package {{ .PackageName }}
+
+{{ .Imports.String }}
+
+{{ template "go-file-contents.tmp" .Contents }}

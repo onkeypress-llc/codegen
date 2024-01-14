@@ -1,0 +1,3 @@
+{{range .}}
+{{ template "go-file-content.tmp" . }}
+{{end}}
