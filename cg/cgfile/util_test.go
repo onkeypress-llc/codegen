@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/onkeypress-llc/codegen/cg"
+	"github.com/onkeypress-llc/codegen/cg/cgcontext"
 	"github.com/onkeypress-llc/codegen/cg/cgfs"
 )
 
@@ -25,6 +26,6 @@ func filePrint(content string) string {
 	return fmt.Sprintf("\n---\n%s\n---\n", content)
 }
 
-func ctx() cg.GeneratorContextInterface {
-	return cg.NewContextWithFS(cgfs.NewMapFS())
+func ctx() cgcontext.Interface {
+	return cgcontext.New(cg.TemplateFS()).SetFS(cgfs.NewMapFS())
 }

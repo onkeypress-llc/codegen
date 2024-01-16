@@ -3,10 +3,12 @@ package cgfile_test
 import (
 	"embed"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/onkeypress-llc/codegen/cg"
 	"github.com/onkeypress-llc/codegen/cg/cgfile"
+	"github.com/onkeypress-llc/codegen/cg/cgnode"
 )
 
 var testFileName = "foo.go"
@@ -46,8 +48,20 @@ func TestFileImplementsNodeInterface(t *testing.T) {
 	}
 }
 
+func TestFileHeader(t *testing.T) {
+	headerText := "Here is some header text to inject into the template"
+	file := cgfile.NewFile(testDestination).Package(testPackageName).SetHeader(headerText)
+	output, err := cg.NodeToString(ctx(), file)
+	if err != nil {
+		t.Error(err)
+	}
+	if !strings.Contains(output, headerText) {
+		t.Errorf("Expected output to contain header text: %s. File content\n\n%s", headerText, output)
+	}
+}
+
 // verify different types meet the interface requirement
-func isNode[T any](n cg.NodeInterface) bool {
+func isNode[T any](n cgnode.NodeInterface) bool {
 	return true
 }
 

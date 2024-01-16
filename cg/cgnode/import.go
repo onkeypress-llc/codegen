@@ -1,29 +1,22 @@
-package cg
+package cgnode
 
 import (
 	"fmt"
 	"strings"
 )
 
-type TemplateImport struct {
+type Import struct {
 	Source       string
 	Label        string
 	defaultLabel string
 }
 
-func NewTemplateImport(source string) *TemplateImport {
-	return NewLabeledTemplateImport(source, "")
-}
-
-func NewLabeledTemplateImport(source, label string) *TemplateImport {
+func NewImport(source string) *Import {
 	defaultLabel := GetImportDefaultLabel(source)
-	if len(label) == 0 {
-		label = defaultLabel
-	}
-	return &TemplateImport{
+	return &Import{
 		Source:       source,
 		defaultLabel: defaultLabel,
-		Label:        label,
+		Label:        defaultLabel,
 	}
 }
 
@@ -32,11 +25,16 @@ func GetImportDefaultLabel(source string) string {
 	return parts[len(parts)-1]
 }
 
-func (i *TemplateImport) DefaultLabel() string {
+func (i *Import) DefaultLabel() string {
 	return i.defaultLabel
 }
 
-func (i *TemplateImport) String() string {
+func (i *Import) SetLabel(label string) *Import {
+	i.Label = label
+	return i
+}
+
+func (i *Import) String() string {
 	prefix := ""
 	if i.defaultLabel != i.Label {
 		prefix = fmt.Sprintf("%s ", i.Label)
@@ -44,6 +42,6 @@ func (i *TemplateImport) String() string {
 	return fmt.Sprintf("%s\"%s\"", prefix, i.Source)
 }
 
-func (i *TemplateImport) Equals(compareTo *TemplateImport) bool {
+func (i *Import) Equals(compareTo *Import) bool {
 	return i.Label == compareTo.Label && i.Source == compareTo.Source
 }

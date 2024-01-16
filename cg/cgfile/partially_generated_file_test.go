@@ -21,6 +21,7 @@ func TestPartiallyGeneratedFile(t *testing.T) {
 	result, err := cgfile.MaybeSignFile(ctx(), f)
 	if err != nil {
 		t.Error(err)
+		return
 	}
 	expected := snapshot_pg(t, "basic.snap")
 	if result != expected {

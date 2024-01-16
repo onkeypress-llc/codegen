@@ -78,7 +78,7 @@ func (s *SignedString) SignString(value string) (string, error) {
 
 	output := strings.ReplaceAll(value, s.token, replacementToken(signature))
 	if output == value {
-		return "", fmt.Errorf("To sign a file you must embed a signing token within its contents\ne.g.\n%s\n", s.token)
+		return "", fmt.Errorf("To sign a file you must embed a signing token within its contents\ne.g.\n%s\nshould appear in\n%s\n\n", s.token, value)
 	}
 
 	return output, nil

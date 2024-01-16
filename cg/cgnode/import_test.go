@@ -1,10 +1,10 @@
-package cg_test
+package cgnode_test
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/onkeypress-llc/codegen/cg"
+	"github.com/onkeypress-llc/codegen/cg/cgnode"
 )
 
 var simpleSource string = "fmt"
@@ -13,7 +13,7 @@ var pathedSource string = "github.com/onkeypress-llc/codegen/cg"
 var pathedSourceDefaultLabel string = "cg"
 
 type ImportFieldsTestData struct {
-	input                *cg.TemplateImport
+	input                *cgnode.Import
 	expectedLabel        string
 	expectedSource       string
 	expectedDefaultLabel string
@@ -22,25 +22,25 @@ type ImportFieldsTestData struct {
 func TestImportFields(t *testing.T) {
 	testCases := []*ImportFieldsTestData{
 		{
-			input:                cg.NewTemplateImport(simpleSource),
+			input:                cgnode.NewImport(simpleSource),
 			expectedLabel:        simpleSourceDefaultLabel,
 			expectedSource:       simpleSource,
 			expectedDefaultLabel: simpleSourceDefaultLabel,
 		},
 		{
-			input:                cg.NewTemplateImport(pathedSource),
+			input:                cgnode.NewImport(pathedSource),
 			expectedLabel:        pathedSourceDefaultLabel,
 			expectedSource:       pathedSource,
 			expectedDefaultLabel: pathedSourceDefaultLabel,
 		},
 		{
-			input:                cg.NewLabeledTemplateImport(simpleSource, "foo"),
+			input:                cgnode.NewImport(simpleSource).SetLabel("foo"),
 			expectedLabel:        "foo",
 			expectedSource:       simpleSource,
 			expectedDefaultLabel: simpleSourceDefaultLabel,
 		},
 		{
-			input:                cg.NewLabeledTemplateImport(pathedSource, "foo"),
+			input:                cgnode.NewImport(pathedSource).SetLabel("foo"),
 			expectedLabel:        "foo",
 			expectedSource:       pathedSource,
 			expectedDefaultLabel: pathedSourceDefaultLabel,
@@ -68,18 +68,18 @@ func checkImportFields(data *ImportFieldsTestData) error {
 }
 
 type ImportEquivalenceTestData struct {
-	compareValue *cg.TemplateImport
-	withValue    *cg.TemplateImport
+	compareValue *cgnode.Import
+	withValue    *cgnode.Import
 	expected     bool
 }
 
 func TestImportEquals(t *testing.T) {
 	label0 := "foo"
 	label1 := "bar"
-	unlabeledTestingImport := cg.NewTemplateImport(simpleSource)
-	labeledTestingImport0 := cg.NewLabeledTemplateImport(simpleSource, label0)
-	labeledPathedImport0 := cg.NewLabeledTemplateImport(pathedSource, label0)
-	labeledPathedImport1 := cg.NewLabeledTemplateImport(pathedSource, label1)
+	unlabeledTestingImport := cgnode.NewImport(simpleSource)
+	labeledTestingImport0 := cgnode.NewImport(simpleSource).SetLabel(label0)
+	labeledPathedImport0 := cgnode.NewImport(pathedSource).SetLabel(label0)
+	labeledPathedImport1 := cgnode.NewImport(pathedSource).SetLabel(label1)
 	testCases := []*ImportEquivalenceTestData{
 		// self equivalence
 		{
@@ -115,7 +115,7 @@ func TestImportEquals(t *testing.T) {
 }
 
 type ImportStringTestData struct {
-	value    *cg.TemplateImport
+	value    *cgnode.Import
 	expected string
 }
 
@@ -123,19 +123,19 @@ func TestImportString(t *testing.T) {
 	label0 := "foo"
 	testCases := []*ImportStringTestData{
 		{
-			value:    cg.NewTemplateImport(simpleSource),
+			value:    cgnode.NewImport(simpleSource),
 			expected: fmt.Sprintf("\"%s\"", simpleSource),
 		},
 		{
-			value:    cg.NewLabeledTemplateImport(simpleSource, label0),
+			value:    cgnode.NewImport(simpleSource).SetLabel(label0),
 			expected: fmt.Sprintf("%s \"%s\"", label0, simpleSource),
 		},
 		{
-			value:    cg.NewTemplateImport(pathedSource),
+			value:    cgnode.NewImport(pathedSource),
 			expected: fmt.Sprintf("\"%s\"", pathedSource),
 		},
 		{
-			value:    cg.NewLabeledTemplateImport(pathedSource, label0),
+			value:    cgnode.NewImport(pathedSource).SetLabel(label0),
 			expected: fmt.Sprintf("%s \"%s\"", label0, pathedSource),
 		},
 	}

@@ -4,10 +4,11 @@ import (
 	"fmt"
 
 	"github.com/onkeypress-llc/codegen/cg"
+	"github.com/onkeypress-llc/codegen/cg/cgcontext"
+	"github.com/onkeypress-llc/codegen/cg/cgnode"
+	"github.com/onkeypress-llc/codegen/cg/cgtmp"
 	"github.com/onkeypress-llc/codegen/cg/signing"
 )
-
-var goFileTemplates = []string{"go-file", "go-file-contents", "go-file-content"}
 
 type TemplateFile struct {
 	// header comment for file
@@ -17,77 +18,83 @@ type TemplateFile struct {
 	// package at the top of file
 	packageName string
 	// manually added imports to file
-	imports *cg.TemplateImportSet
+	imports *cgnode.ImportSet
 	// set of content in the file
-	contents []cg.TemplateFileContent
+	contents []cgnode.NodeInterface
 
 	allowWriteIfFormatFails bool
 
-	signer       signing.SignedStringInterface
-	createHeader func() string
+	signer signing.SignedStringInterface
 }
 
 type TemplateFileOutputData struct {
 	// header comment
-	Header cg.NodeOutputInterface
+	Header cgnode.NodeOutputInterface
 	// package of this file
 	PackageName string
 	// union of imports used in the file
-	Imports *cg.TemplateImportSet
+	Imports *cgnode.ImportSet
 	// set of content in the file
-	Contents []cg.TemplateFileContentOutput
+	Contents []cgnode.NodeOutputInterface
 }
 
 func NewFile(destination *Destination) *TemplateFile {
-	return &TemplateFile{imports: cg.NewImportSet(), destination: destination, contents: []cg.TemplateFileContent{}, createHeader: createHeader}
+	return &TemplateFile{imports: cgnode.NewImportSet(), destination: destination, contents: []cgnode.NodeInterface{}}
 }
 
-func (f *TemplateFile) UsedImports() *cg.TemplateImportSet {
-	return f.imports
+func (f *TemplateFile) UsedImports() (*cgnode.ImportSet, error) {
+	return f.imports, nil
 }
 
-func (f *TemplateFile) Generate(c cg.GeneratorContextInterface) (cg.NodeOutputInterface, error) {
-	imports, err := cg.NewImportSet().MergeValuesInFrom(f.imports)
+func GoFileTemplates() *cgtmp.Templates {
+	return cgtmp.NewSet().AddTemplate(cgtmp.New("go-file"), cgtmp.New("go-file-contents"), cgtmp.New("go-file-content"))
+}
+
+func (f *TemplateFile) Generate(c cgcontext.Interface) (cgnode.NodeOutputInterface, error) {
+	imports, err := cgnode.NewImportSet().MergeWith(f.imports)
 	if err != nil {
 		return nil, err
 	}
-	contents := make([]cg.TemplateFileContentOutput, len(f.contents))
-	templates := cg.NewTemplates()
+	contents := make([]cgnode.NodeOutputInterface, len(f.contents))
+	templates := cgtmp.NewSet().AddTemplates(GoFileTemplates())
 	// from file content blocks, aggragate imports, template names, and content
-
 	// add imports from file content blocks
 	for i := range f.contents {
 		content := f.contents[i]
-		imports, err = imports.MergeValuesInFrom(content.Imports())
-
-		templates.AddTemplates(content.Templates())
-		// TODO: capture template names used by this content block
-		contentOutput, err := content.Generate()
+		contentOutput, err := content.Generate(c)
 		if err != nil {
 			return nil, err
 		}
 		contents[i] = contentOutput
+		templates = templates.AddTemplates(contentOutput.Templates())
+		nodeImports, err := contentOutput.UsedImports()
+		if err != nil {
+			return nil, err
+		}
+		imports, err = imports.MergeWith(nodeImports)
+		if err != nil {
+			return nil, err
+		}
 	}
-	fileHeader := cg.NewDocBlock(f.createHeader())
+	fileHeader := cg.NewDocBlock(f.HeaderString())
 	headerOutput, err := fileHeader.Generate(c)
 	if err != nil {
 		return nil, err
 	}
 
-	templateNames := append(goFileTemplates, templates.Names()...)
-
-	return cg.TemplateOutput(
+	return cgnode.TemplateOutput(
+		c.TemplateFS(),
 		&TemplateFileOutputData{
 			Header:      headerOutput,
 			PackageName: f.packageName,
 			Imports:     imports,
 			Contents:    contents,
 		},
-		templateNames...,
+		templates,
 	), nil
 }
 
-func (f *TemplateFile) Save(c cg.GeneratorContextInterface) (string, error) {
+func (f *TemplateFile) Save(c cgcontext.Interface) (string, error) {
 	panic("Not implemented")
 }
 
@@ -96,7 +103,7 @@ func (f *TemplateFile) Package(packageName string) *TemplateFile {
 	return f
 }
 
-func (f *TemplateFile) Contents(contents []cg.TemplateFileContent) *TemplateFile {
+func (f *TemplateFile) Contents(contents []cgnode.NodeInterface) *TemplateFile {
 	f.contents = contents
 	return f
 }
@@ -106,9 +113,9 @@ func (f *TemplateFile) AllowWriteIfFormatFails() *TemplateFile {
 	return f
 }
 
-func (f *TemplateFile) Imports(imports *cg.TemplateImportSet) *TemplateFile {
+func (f *TemplateFile) ImportsUsed(imports *cgnode.ImportSet) (*TemplateFile, error) {
 	f.imports = imports
-	return f
+	return f, nil
 }
 
 func (f *TemplateFile) SetHeader(header string) *TemplateFile {
@@ -117,12 +124,14 @@ func (f *TemplateFile) SetHeader(header string) *TemplateFile {
 }
 
 func (f *TemplateFile) HeaderString() string {
-	return f.headerString
+	value, signer := f.headerString, f.signer
+	if signer == nil {
+		return value
+	}
+	return signer.DocBlock(value)
 }
 
-func createHeader() string { return "" }
-
-func FormatFile(context cg.GeneratorContextInterface, file *TemplateFile) (string, error) {
+func FormatFile(context cgcontext.Interface, file *TemplateFile) (string, error) {
 	value, err := cg.NodeToString(context, file)
 	if err != nil {
 		return "", err
@@ -130,7 +139,7 @@ func FormatFile(context cg.GeneratorContextInterface, file *TemplateFile) (strin
 	return cg.FormatGoString(value)
 }
 
-func SignFile(context cg.GeneratorContextInterface, file *TemplateFile) (string, error) {
+func SignFile(context cgcontext.Interface, file *TemplateFile) (string, error) {
 	formattedValue, err := FormatFile(context, file)
 	if err != nil {
 		return "", err
@@ -141,17 +150,29 @@ func SignFile(context cg.GeneratorContextInterface, file *TemplateFile) (string,
 	return file.signer.SignString(formattedValue)
 }
 
-func MaybeSignFile(context cg.GeneratorContextInterface, file *TemplateFile) (string, error) {
+func MaybeSignFile(context cgcontext.Interface, file *TemplateFile) (string, error) {
 	if file.signer != nil {
 		return SignFile(context, file)
 	}
 	return FormatFile(context, file)
 }
 
-func Save(context cg.GeneratorContextInterface, file *TemplateFile) error {
+func Save(context cgcontext.Interface, file *TemplateFile) error {
 	output, err := MaybeSignFile(context, file)
 	if err != nil {
 		return err
 	}
 	return file.destination.Write(context, output)
+}
+
+func (f *TemplateFile) ToInterface() cgnode.NodeInterface {
+	return f
+}
+
+func (o *TemplateFileOutputData) String() string {
+	out, err := o.Header.ToString()
+	if err != nil {
+		return fmt.Sprintf("ERROR: %s", err)
+	}
+	return fmt.Sprintf("Header[%s]", out)
 }

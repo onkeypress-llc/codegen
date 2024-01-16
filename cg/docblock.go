@@ -3,26 +3,37 @@ package cg
 import (
 	"fmt"
 	"strings"
+
+	"github.com/onkeypress-llc/codegen/cg/cgcontext"
+	"github.com/onkeypress-llc/codegen/cg/cgnode"
 )
 
-type TemplateDocblock struct {
+const docblockLinePrefixBase = "\n *"
+
+type Docblock struct {
 	comment string
 }
 
-type TemplateDocBlockOutputData struct {
-	lines []string
+func (b *Docblock) ToString() (string, error) {
+	lines := docblockCreateLines(b.comment)
+	if len(lines) < 1 {
+		return "", nil
+	}
+	docblockLinePrefix := fmt.Sprintf("%s ", docblockLinePrefixBase)
+	return fmt.Sprintf("/**%s%s%s/", docblockLinePrefix, strings.Join(lines, docblockLinePrefix), docblockLinePrefixBase), nil
+
 }
 
-func NewDocBlock(comments ...string) *TemplateDocblock {
-	return &TemplateDocblock{comment: strings.Join(comments, "\n")}
+func (b *Docblock) ToInterface() cgnode.NodeInterface {
+	return b
 }
 
-func (b *TemplateDocblock) UsedImports() *TemplateImportSet {
-	return nil
+func NewDocBlock(comments ...string) *Docblock {
+	return &Docblock{comment: strings.Join(comments, "\n")}
 }
 
-func (b *TemplateDocblock) Generate(c GeneratorContextInterface) (NodeOutputInterface, error) {
-	return StringOutput(&TemplateDocBlockOutputData{lines: docblockCreateLines(b.comment)}, docblockDataToString), nil
+func (b *Docblock) Generate(c cgcontext.Interface) (cgnode.NodeOutputInterface, error) {
+	return cgnode.SelfOutput(b), nil
 }
 
 // if there is a comment, split it by lines, else return empty array
@@ -31,15 +42,4 @@ func docblockCreateLines(comment string) []string {
 		return []string{}
 	}
 	return strings.Split(comment, "\n")
-}
-
-const docblockLinePrefixBase = "\n *"
-
-// if there are no lines, return empty string, else format docblock around lines
-func docblockDataToString(b *TemplateDocBlockOutputData) (string, error) {
-	if len(b.lines) < 1 {
-		return "", nil
-	}
-	docblockLinePrefix := fmt.Sprintf("%s ", docblockLinePrefixBase)
-	return fmt.Sprintf("/**%s%s%s/", docblockLinePrefix, strings.Join(b.lines, docblockLinePrefix), docblockLinePrefixBase), nil
 }

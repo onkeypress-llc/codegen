@@ -1,19 +1,12 @@
-package cg
-
-type Template struct {
-	Name string
-}
-
-func NewTemplate(name string) *Template {
-	return &Template{Name: name}
-}
+package cgtmp
 
 type Templates struct {
-	hash map[string]bool
+	hash        map[string]bool
+	orderedList []string
 }
 
 func (s *Templates) Size() int {
-	return len(s.hash)
+	return len(s.orderedList)
 }
 
 func (s *Templates) AddTemplates(container *Templates) *Templates {
@@ -27,7 +20,7 @@ func (s *Templates) AddTemplate(list ...*Template) *Templates {
 	names := make([]string, len(list))
 	for i := range list {
 		t := list[i]
-		names[i] = t.Name
+		names[i] = t.FullName()
 	}
 	return s.AddStrings(names...)
 }
@@ -35,21 +28,19 @@ func (s *Templates) AddTemplate(list ...*Template) *Templates {
 func (s *Templates) AddStrings(list ...string) *Templates {
 	for i := range list {
 		t := list[i]
-		s.hash[t] = true
+		_, ok := s.hash[t]
+		if !ok {
+			s.hash[t] = true
+			s.orderedList = append(s.orderedList, t)
+		}
 	}
 	return s
 }
 
 func (s *Templates) Names() []string {
-	names := make([]string, len(s.hash))
-	index := 0
-	for name, _ := range s.hash {
-		names[index] = name
-		index++
-	}
-	return names
+	return s.orderedList
 }
 
-func NewTemplates() *Templates {
-	return &Templates{hash: make(map[string]bool)}
+func NewSet() *Templates {
+	return &Templates{hash: make(map[string]bool), orderedList: make([]string, 0)}
 }

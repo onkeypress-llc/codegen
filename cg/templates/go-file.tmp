@@ -1,6 +1,6 @@
 {{ .Header.ToString }}
 package {{ .PackageName }}
 
-{{ .Imports.String }}
+{{ .Imports.ToString }}
 
-{{ template "go-file-contents.tmp" .Contents }}
+{{ if .Contents }}{{ template "go-file-contents.tmp" .Contents }}{{ end }}
