@@ -41,6 +41,7 @@ func (s *Templates) Names() []string {
 	return s.orderedList
 }
 
-func NewSet() *Templates {
-	return &Templates{hash: make(map[string]bool), orderedList: make([]string, 0)}
+func NewSet(templates ...*Template) *Templates {
+	instance := &Templates{hash: make(map[string]bool), orderedList: make([]string, 0)}
+	return instance.AddTemplate(templates...)
 }

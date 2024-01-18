@@ -5,17 +5,17 @@ import (
 )
 
 type NodeSet struct {
-	nodes []NodeInterface
+	nodes []NodeInterface[any]
 }
 
-func (n *NodeSet) Generate(ctx cgcontext.Interface) (NodeOutputInterface, error) {
+func (n *NodeSet) Generate(ctx cgcontext.Interface) (NodeOutputInterface[any], error) {
 	return nil, nil
 }
 
-func (s *NodeSet) ToInterface() NodeInterface {
+func (s *NodeSet) ToInterface() NodeInterface[any] {
 	return s
 }
 
-func NewSet(nodes []NodeInterface) *NodeSet {
+func NewSet(nodes []NodeInterface[any]) *NodeSet {
 	return &NodeSet{nodes: nodes}
 }

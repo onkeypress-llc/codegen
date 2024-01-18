@@ -1,10 +1,7 @@
 package cgtmp
 
 import (
-	"bytes"
-	"embed"
 	"fmt"
-	"text/template"
 )
 
 type Template struct {
@@ -27,20 +24,10 @@ func (t *Template) Extension(extension string) *Template {
 	return t
 }
 
-func (t *Template) FullName() string {
-	return fmt.Sprintf("%s/%s.%s", t.path, t.Name, t.extension)
+func (t *Template) NameWithExtension() string {
+	return fmt.Sprintf("%s.%s", t.Name, t.extension)
 }
 
-func ExecuteTemplates(object any, templateFS embed.FS, templates *Templates) (string, error) {
-	tmp, err := template.ParseFS(templateFS, templates.Names()...)
-	if err != nil {
-		return "", err
-	}
-	var buffer bytes.Buffer
-	err = tmp.Execute(&buffer, object)
-	if err != nil {
-		return "", err
-	}
-
-	return buffer.String(), nil
+func (t *Template) FullName() string {
+	return fmt.Sprintf("%s/%s", t.path, t.NameWithExtension())
 }

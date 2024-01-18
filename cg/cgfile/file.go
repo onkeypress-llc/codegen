@@ -20,26 +20,26 @@ type TemplateFile struct {
 	// manually added imports to file
 	imports *cgnode.ImportSet
 	// set of content in the file
-	contents []cgnode.NodeInterface
+	contents []cgnode.NodeInterface[any]
 
 	allowWriteIfFormatFails bool
 
 	signer signing.SignedStringInterface
 }
 
-type TemplateFileOutputData struct {
+type Data struct {
 	// header comment
-	Header cgnode.NodeOutputInterface
+	Header cgnode.NodeOutputInterface[*cg.Docblock]
 	// package of this file
 	PackageName string
 	// union of imports used in the file
 	Imports *cgnode.ImportSet
 	// set of content in the file
-	Contents []cgnode.NodeOutputInterface
+	Contents []cgnode.NodeOutputInterface[any]
 }
 
 func NewFile(destination *Destination) *TemplateFile {
-	return &TemplateFile{imports: cgnode.NewImportSet(), destination: destination, contents: []cgnode.NodeInterface{}}
+	return &TemplateFile{imports: cgnode.NewImportSet(), destination: destination, contents: []cgnode.NodeInterface[any]{}}
 }
 
 func (f *TemplateFile) UsedImports() (*cgnode.ImportSet, error) {
@@ -47,15 +47,15 @@ func (f *TemplateFile) UsedImports() (*cgnode.ImportSet, error) {
 }
 
 func GoFileTemplates() *cgtmp.Templates {
-	return cgtmp.NewSet().AddTemplate(cgtmp.New("go-file"), cgtmp.New("go-file-contents"), cgtmp.New("go-file-content"))
+	return cgtmp.NewSet().AddTemplate(cgtmp.New("go-file-contents"), cgtmp.New("go-file-content"))
 }
 
-func (f *TemplateFile) Generate(c cgcontext.Interface) (cgnode.NodeOutputInterface, error) {
+func (f *TemplateFile) Generate(c cgcontext.Interface) (cgnode.NodeOutputInterface[*Data], error) {
 	imports, err := cgnode.NewImportSet().MergeWith(f.imports)
 	if err != nil {
 		return nil, err
 	}
-	contents := make([]cgnode.NodeOutputInterface, len(f.contents))
+	contents := make([]cgnode.NodeOutputInterface[any], len(f.contents))
 	templates := cgtmp.NewSet().AddTemplates(GoFileTemplates())
 	// from file content blocks, aggragate imports, template names, and content
 	// add imports from file content blocks
@@ -82,16 +82,15 @@ func (f *TemplateFile) Generate(c cgcontext.Interface) (cgnode.NodeOutputInterfa
 		return nil, err
 	}
 
-	return cgnode.TemplateOutput(
-		c.TemplateFS(),
-		&TemplateFileOutputData{
+	return cgnode.Output(
+		cgtmp.New("go-file"),
+		&Data{
 			Header:      headerOutput,
 			PackageName: f.packageName,
 			Imports:     imports,
 			Contents:    contents,
 		},
-		templates,
-	), nil
+	).SetTemplates(templates), nil
 }
 
 func (f *TemplateFile) Save(c cgcontext.Interface) (string, error) {
@@ -103,7 +102,7 @@ func (f *TemplateFile) Package(packageName string) *TemplateFile {
 	return f
 }
 
-func (f *TemplateFile) Contents(contents []cgnode.NodeInterface) *TemplateFile {
+func (f *TemplateFile) Contents(contents []cgnode.NodeInterface[any]) *TemplateFile {
 	f.contents = contents
 	return f
 }
@@ -165,14 +164,6 @@ func Save(context cgcontext.Interface, file *TemplateFile) error {
 	return file.destination.Write(context, output)
 }
 
-func (f *TemplateFile) ToInterface() cgnode.NodeInterface {
+func (f *TemplateFile) ToInterface() cgnode.NodeInterface[*Data] {
 	return f
-}
-
-func (o *TemplateFileOutputData) String() string {
-	out, err := o.Header.ToString()
-	if err != nil {
-		return fmt.Sprintf("ERROR: %s", err)
-	}
-	return fmt.Sprintf("Header[%s]", out)
 }

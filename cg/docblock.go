@@ -14,7 +14,7 @@ type Docblock struct {
 	comment string
 }
 
-func (b *Docblock) ToString() (string, error) {
+func (b *Docblock) ToString(ctx cgcontext.Interface) (string, error) {
 	lines := docblockCreateLines(b.comment)
 	if len(lines) < 1 {
 		return "", nil
@@ -24,7 +24,7 @@ func (b *Docblock) ToString() (string, error) {
 
 }
 
-func (b *Docblock) ToInterface() cgnode.NodeInterface {
+func (b *Docblock) ToInterface() cgnode.NodeInterface[*Docblock] {
 	return b
 }
 
@@ -32,8 +32,8 @@ func NewDocBlock(comments ...string) *Docblock {
 	return &Docblock{comment: strings.Join(comments, "\n")}
 }
 
-func (b *Docblock) Generate(c cgcontext.Interface) (cgnode.NodeOutputInterface, error) {
-	return cgnode.SelfOutput(b), nil
+func (b *Docblock) Generate(c cgcontext.Interface) (cgnode.NodeOutputInterface[*Docblock], error) {
+	return cgnode.StringOutput(b), nil
 }
 
 // if there is a comment, split it by lines, else return empty array

@@ -16,7 +16,7 @@ import (
 var testFS embed.FS
 
 // verify different types meet the interface requirement
-func isNode[T any](n cgnode.NodeInterface) bool {
+func isNode[T any](n cgnode.NodeInterface[any]) bool {
 	return true
 }
 
@@ -26,7 +26,7 @@ func ctx() cgcontext.Interface {
 
 type errorNode struct{}
 
-func (e *errorNode) Generate(ctx cgcontext.Interface) (cgnode.NodeOutputInterface, error) {
+func (e *errorNode) Generate(ctx cgcontext.Interface) (cgnode.NodeOutputInterface[any], error) {
 	return nil, fmt.Errorf("Error!")
 }
 
@@ -64,9 +64,14 @@ type templateValue struct {
 	Value string
 }
 
+func newTemplateValue(value string) cgnode.NodeOutputInterface[*templateValue] {
+	return cgnode.Output[*templateValue](cgtmp.New("static"), &templateValue{Value: value})
+}
+
 func TestTemplateExecution(t *testing.T) {
+	context := ctx()
 	value := "some value"
-	output, err := cgtmp.ExecuteTemplates(&templateValue{Value: value}, testFS, cgtmp.NewSet().AddTemplate(cgtmp.New("static")))
+	output, err := cgnode.ExecuteTemplate[*templateValue](context, newTemplateValue(value))
 	if err != nil {
 		t.Error(err)
 	}

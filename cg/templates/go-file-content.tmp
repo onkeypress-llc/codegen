@@ -1,1 +1,10 @@
-// go file content 
+{{$TemplateName := .TemplateName}}
+{{if eq $TemplateName "string" }}
+{{ stringify . }}
+{{else if eq $TemplateName "docblock" }}
+{{template "docblock" .Data}}
+{{else if eq $TemplateName "definition" }}
+{{template "docblock" .Data}}
+{{else if eq $TemplateName "execution" }}
+{{template "docblock" .Data}}
+{{end}}

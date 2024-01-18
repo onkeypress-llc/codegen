@@ -25,13 +25,13 @@ func snapshot_b(t *testing.T, fileName string) string {
 }
 
 func TestFileIsNode(t *testing.T) {
-	if !isNode[cgfile.TemplateFileOutputData](cgfile.NewFile(testDestination)) {
+	if !isNode[cgfile.Data](cgfile.NewFile(testDestination)) {
 		t.Errorf("File not valid node")
 	}
-	if !isNode[cgfile.TemplateFileOutputData](cgfile.NewGeneratedFile(testDestination)) {
+	if !isNode[cgfile.Data](cgfile.NewGeneratedFile(testDestination)) {
 		t.Errorf("Generated file not valid node")
 	}
-	if !isNode[cgfile.TemplateFileOutputData](cgfile.NewPartiallyGeneratedFile(testDestination)) {
+	if !isNode[cgfile.Data](cgfile.NewPartiallyGeneratedFile(testDestination)) {
 		t.Errorf("Partially generated file not valid node")
 	}
 }
@@ -61,7 +61,7 @@ func TestFileHeader(t *testing.T) {
 }
 
 // verify different types meet the interface requirement
-func isNode[T any](n cgnode.NodeInterface) bool {
+func isNode[T any](n cgnode.NodeInterface[*cgfile.Data]) bool {
 	return true
 }
 
