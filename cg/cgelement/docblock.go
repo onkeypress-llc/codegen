@@ -1,4 +1,4 @@
-package cg
+package cgelement
 
 import (
 	"fmt"

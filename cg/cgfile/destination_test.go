@@ -4,15 +4,15 @@ import (
 	"path"
 	"testing"
 
-	"github.com/onkeypress-llc/codegen/cg"
 	"github.com/onkeypress-llc/codegen/cg/cgcontext"
 	"github.com/onkeypress-llc/codegen/cg/cgfile"
 	"github.com/onkeypress-llc/codegen/cg/cgfs"
+	"github.com/onkeypress-llc/codegen/cg/cgtmp"
 )
 
 func TestDestinationWrite(t *testing.T) {
 	fs := cgfs.NewMapFS()
-	ctx := cgcontext.New(cg.TemplateFS()).SetFS(fs)
+	ctx := cgcontext.New(cgtmp.TemplateFS()).SetFS(fs)
 	filename, filepath, content := "file.foo", "some/path", "file content to be written"
 	destination := cgfile.NewDestination(filename, filepath)
 

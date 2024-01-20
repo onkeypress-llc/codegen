@@ -143,6 +143,9 @@ func ExecuteTemplate[D any](ctx cgcontext.Interface, obj NodeOutputInterface[D])
 			return ctx
 		},
 		"stringify": func(o NodeWithStringOutput) (string, error) {
+			if o == nil {
+				return "", nil
+			}
 			return o.ToString(ctx)
 		},
 	}).ParseFS(ctx.TemplateFS(), templates.Names()...)

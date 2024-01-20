@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/onkeypress-llc/codegen/cg"
 	"github.com/onkeypress-llc/codegen/cg/cgcontext"
+	"github.com/onkeypress-llc/codegen/cg/cgfile"
 	"github.com/onkeypress-llc/codegen/cg/cgfs"
+	"github.com/onkeypress-llc/codegen/cg/cgtmp"
 )
 
 func snapshot(t *testing.T, fs embed.FS, name string) string {
@@ -27,5 +28,25 @@ func filePrint(content string) string {
 }
 
 func ctx() cgcontext.Interface {
-	return cgcontext.New(cg.TemplateFS()).SetFS(cgfs.NewMapFS())
+	return cgcontext.New(cgtmp.TemplateFS()).SetFS(cgfs.NewMapFS())
+}
+
+func TestFormatString(t *testing.T) {
+	misformattedCode := `
+for i := range values {
+fmt.Printf("%d", i)
+}
+`
+	result, err := cgfile.FormatGoString(misformattedCode)
+	if err != nil {
+		t.Error(err)
+	}
+	expected := `
+for i := range values {
+	fmt.Printf("%d", i)
+}
+`
+	if result != expected {
+		t.Errorf("Got \n%s\nexpected\n%s\n", result, expected)
+	}
 }

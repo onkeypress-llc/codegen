@@ -1,0 +1,6 @@
+{{with .GoGenerateCommentLine}}{{stringify .}}{{end}}{{with .GeneratedFileCommentLine}}{{stringify .}}{{end}}{{ stringify .Header }}
+package {{ .PackageName }}
+
+{{ stringify .Imports }}
+
+{{ if .Contents }}{{ template "go-file-contents.tmp" .Contents }}{{ end }}

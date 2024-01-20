@@ -3,14 +3,16 @@ package cgfile
 import (
 	"fmt"
 
-	"github.com/onkeypress-llc/codegen/cg"
 	"github.com/onkeypress-llc/codegen/cg/cgcontext"
+	"github.com/onkeypress-llc/codegen/cg/cgelement"
 	"github.com/onkeypress-llc/codegen/cg/cgnode"
 	"github.com/onkeypress-llc/codegen/cg/cgtmp"
 	"github.com/onkeypress-llc/codegen/cg/signing"
 )
 
-type TemplateFile struct {
+const DefaultPackageName = "main"
+
+type File struct {
 	// header comment for file
 	headerString string
 	// where the file should be written on the OS
@@ -27,22 +29,16 @@ type TemplateFile struct {
 	signer signing.SignedStringInterface
 }
 
-type Data struct {
-	// header comment
-	Header cgnode.NodeOutputInterface[*cg.Docblock]
-	// package of this file
-	PackageName string
-	// union of imports used in the file
-	Imports *cgnode.ImportSet
-	// set of content in the file
-	Contents []cgnode.NodeOutputInterface[any]
+// intentionally verbose
+func NewFileWithoutGeneratorHeadersOrSigning(destination *Destination) *File {
+	return newFile(destination)
 }
 
-func NewFile(destination *Destination) *TemplateFile {
-	return &TemplateFile{imports: cgnode.NewImportSet(), destination: destination, contents: []cgnode.NodeInterface[any]{}}
+func newFile(destination *Destination) *File {
+	return &File{imports: cgnode.NewImportSet(), destination: destination, packageName: DefaultPackageName, contents: []cgnode.NodeInterface[any]{}}
 }
 
-func (f *TemplateFile) UsedImports() (*cgnode.ImportSet, error) {
+func (f *File) UsedImports() (*cgnode.ImportSet, error) {
 	return f.imports, nil
 }
 
@@ -50,7 +46,7 @@ func GoFileTemplates() *cgtmp.Templates {
 	return cgtmp.NewSet().AddTemplate(cgtmp.New("go-file-contents"), cgtmp.New("go-file-content"))
 }
 
-func (f *TemplateFile) Generate(c cgcontext.Interface) (cgnode.NodeOutputInterface[*Data], error) {
+func (f *File) Generate(c cgcontext.Interface) (cgnode.NodeOutputInterface[*FileData], error) {
 	imports, err := cgnode.NewImportSet().MergeWith(f.imports)
 	if err != nil {
 		return nil, err
@@ -76,53 +72,70 @@ func (f *TemplateFile) Generate(c cgcontext.Interface) (cgnode.NodeOutputInterfa
 			return nil, err
 		}
 	}
-	fileHeader := cg.NewDocBlock(f.HeaderString())
+	fileHeader := cgelement.NewDocBlock(f.HeaderString())
 	headerOutput, err := fileHeader.Generate(c)
 	if err != nil {
 		return nil, err
 	}
+	a, b := f.generatedComments(c)
 
 	return cgnode.Output(
 		cgtmp.New("go-file"),
-		&Data{
-			Header:      headerOutput,
-			PackageName: f.packageName,
-			Imports:     imports,
-			Contents:    contents,
+		&FileData{
+			GoGenerateCommentLine:    a,
+			GeneratedFileCommentLine: b,
+			Header:                   headerOutput,
+			PackageName:              f.packageName,
+			Imports:                  imports,
+			Contents:                 contents,
 		},
 	).SetTemplates(templates), nil
 }
 
-func (f *TemplateFile) Save(c cgcontext.Interface) (string, error) {
-	panic("Not implemented")
+func (f *File) generatedComments(ctx cgcontext.Interface) (*cgelement.LineComment, *cgelement.LineComment) {
+	signer := f.signer
+	if signer == nil {
+		return nil, nil
+	}
+	generateLine := cgelement.NewGoGenerateLineComment(ctx.GetCommandString())
+	if signer.SigningType() == signing.Full {
+		return generateLine, cgelement.NewGeneratedFileLineComment(ctx.GetAttributionString())
+	} else if signer.SigningType() == signing.Partial {
+		return generateLine, nil
+	}
+	panic("Undefined generation case")
 }
 
-func (f *TemplateFile) Package(packageName string) *TemplateFile {
+func (f *File) Save(c cgcontext.Interface) error {
+	return Save(c, f)
+}
+
+func (f *File) Package(packageName string) *File {
 	f.packageName = packageName
 	return f
 }
 
-func (f *TemplateFile) Contents(contents []cgnode.NodeInterface[any]) *TemplateFile {
+func (f *File) Contents(contents []cgnode.NodeInterface[any]) *File {
 	f.contents = contents
 	return f
 }
 
-func (f *TemplateFile) AllowWriteIfFormatFails() *TemplateFile {
+func (f *File) AllowWriteIfFormatFails() *File {
 	f.allowWriteIfFormatFails = true
 	return f
 }
 
-func (f *TemplateFile) ImportsUsed(imports *cgnode.ImportSet) (*TemplateFile, error) {
+func (f *File) ImportsUsed(imports *cgnode.ImportSet) (*File, error) {
 	f.imports = imports
 	return f, nil
 }
 
-func (f *TemplateFile) SetHeader(header string) *TemplateFile {
+func (f *File) SetHeader(header string) *File {
 	f.headerString = header
 	return f
 }
 
-func (f *TemplateFile) HeaderString() string {
+func (f *File) HeaderString() string {
 	value, signer := f.headerString, f.signer
 	if signer == nil {
 		return value
@@ -130,15 +143,15 @@ func (f *TemplateFile) HeaderString() string {
 	return signer.DocBlock(value)
 }
 
-func FormatFile(context cgcontext.Interface, file *TemplateFile) (string, error) {
-	value, err := cg.NodeToString(context, file)
+func FormatFile(context cgcontext.Interface, file *File) (string, error) {
+	value, err := cgnode.NodeToString(context, file)
 	if err != nil {
 		return "", err
 	}
-	return cg.FormatGoString(value)
+	return FormatGoString(value)
 }
 
-func SignFile(context cgcontext.Interface, file *TemplateFile) (string, error) {
+func SignFile(context cgcontext.Interface, file *File) (string, error) {
 	formattedValue, err := FormatFile(context, file)
 	if err != nil {
 		return "", err
@@ -149,14 +162,14 @@ func SignFile(context cgcontext.Interface, file *TemplateFile) (string, error) {
 	return file.signer.SignString(formattedValue)
 }
 
-func MaybeSignFile(context cgcontext.Interface, file *TemplateFile) (string, error) {
+func MaybeSignFile(context cgcontext.Interface, file *File) (string, error) {
 	if file.signer != nil {
 		return SignFile(context, file)
 	}
 	return FormatFile(context, file)
 }
 
-func Save(context cgcontext.Interface, file *TemplateFile) error {
+func Save(context cgcontext.Interface, file *File) error {
 	output, err := MaybeSignFile(context, file)
 	if err != nil {
 		return err
@@ -164,6 +177,6 @@ func Save(context cgcontext.Interface, file *TemplateFile) error {
 	return file.destination.Write(context, output)
 }
 
-func (f *TemplateFile) ToInterface() cgnode.NodeInterface[*Data] {
+func (f *File) ToInterface() cgnode.NodeInterface[*FileData] {
 	return f
 }

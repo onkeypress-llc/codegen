@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/onkeypress-llc/codegen/cg"
 	"github.com/onkeypress-llc/codegen/cg/cgfile"
 	"github.com/onkeypress-llc/codegen/cg/cgnode"
 )
@@ -25,20 +24,20 @@ func snapshot_b(t *testing.T, fileName string) string {
 }
 
 func TestFileIsNode(t *testing.T) {
-	if !isNode[cgfile.Data](cgfile.NewFile(testDestination)) {
+	if !isNode[cgfile.FileData](cgfile.NewFileWithoutGeneratorHeadersOrSigning(testDestination)) {
 		t.Errorf("File not valid node")
 	}
-	if !isNode[cgfile.Data](cgfile.NewGeneratedFile(testDestination)) {
+	if !isNode[cgfile.FileData](cgfile.NewFile(testDestination)) {
 		t.Errorf("Generated file not valid node")
 	}
-	if !isNode[cgfile.Data](cgfile.NewPartiallyGeneratedFile(testDestination)) {
+	if !isNode[cgfile.FileData](cgfile.NewPartiallyGeneratedFile(testDestination)) {
 		t.Errorf("Partially generated file not valid node")
 	}
 }
 
 func TestFileImplementsNodeInterface(t *testing.T) {
-	file := cgfile.NewFile(testDestination).Package(testPackageName)
-	output, err := cg.NodeToString(ctx(), file)
+	file := cgfile.NewFileWithoutGeneratorHeadersOrSigning(testDestination).Package(testPackageName)
+	output, err := cgnode.NodeToString(ctx(), file)
 	if err != nil {
 		t.Error(err)
 	}
@@ -50,8 +49,8 @@ func TestFileImplementsNodeInterface(t *testing.T) {
 
 func TestFileHeader(t *testing.T) {
 	headerText := "Here is some header text to inject into the template"
-	file := cgfile.NewFile(testDestination).Package(testPackageName).SetHeader(headerText)
-	output, err := cg.NodeToString(ctx(), file)
+	file := cgfile.NewFileWithoutGeneratorHeadersOrSigning(testDestination).Package(testPackageName).SetHeader(headerText)
+	output, err := cgnode.NodeToString(ctx(), file)
 	if err != nil {
 		t.Error(err)
 	}
@@ -61,7 +60,7 @@ func TestFileHeader(t *testing.T) {
 }
 
 // verify different types meet the interface requirement
-func isNode[T any](n cgnode.NodeInterface[*cgfile.Data]) bool {
+func isNode[T any](n cgnode.NodeInterface[*cgfile.FileData]) bool {
 	return true
 }
 

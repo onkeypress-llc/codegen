@@ -24,6 +24,7 @@ type SignedStringInterface interface {
 	Verify(string) (bool, error)
 	HasValidSignature(string) (bool, error)
 	DocBlock(string) string
+	SigningType() SigningType
 }
 
 type SignedString struct {
@@ -32,6 +33,7 @@ type SignedString struct {
 	tokenName    string
 	matchPattern *regexp.Regexp
 	docMessage   string
+	signingType  SigningType
 }
 
 type MatchResult struct {
@@ -44,7 +46,7 @@ func DefaultMatchPattern() *regexp.Regexp {
 }
 
 func New(tokenName, docMessage string) *SignedString {
-	return &SignedString{preprocess: preprocess, tokenName: tokenName, matchPattern: DefaultMatchPattern(), token: defaultToken, docMessage: docMessage}
+	return &SignedString{preprocess: preprocess, tokenName: tokenName, matchPattern: DefaultMatchPattern(), token: defaultToken, docMessage: docMessage, signingType: Full}
 }
 
 func NewGeneratedString() SignedStringInterface {
@@ -52,7 +54,7 @@ func NewGeneratedString() SignedStringInterface {
 }
 
 func NewPartiallyGeneratedString(begin, end string) SignedStringInterface {
-	return New(partiallyGeneratedTokenName, partiallyGeneratedDocMessage(begin, end))
+	return New(partiallyGeneratedTokenName, partiallyGeneratedDocMessage(begin, end)).setSigningType(Partial)
 }
 
 func (s *SignedString) SigningToken() string {
@@ -142,6 +144,15 @@ func (s *SignedString) DocBlock(comment string) string {
 		sections = append(sections, comment)
 	}
 	return strings.Join(append(sections, s.SigningToken()), "\n\n")
+}
+
+func (s *SignedString) SigningType() SigningType {
+	return s.signingType
+}
+
+func (s *SignedString) setSigningType(v SigningType) *SignedString {
+	s.signingType = v
+	return s
 }
 
 func replacementToken(value string) string {

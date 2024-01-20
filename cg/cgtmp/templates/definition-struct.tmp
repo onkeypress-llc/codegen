@@ -1,0 +1,5 @@
+struct {
+  {{range .Properties}}
+  {{.Name}} {{.Type}}
+  {{end}}
+}

@@ -1,0 +1,5 @@
+interface {
+  {{range .Methods}}
+  {{ .Name }}(.ArgumentTypes){{.ReturnTypes}}
+  {{end}}
+}

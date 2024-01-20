@@ -10,14 +10,41 @@ import (
 type Interface interface {
 	FS() cgfs.FSInterface
 	TemplateFS() embed.FS
+	CommandString(string) Interface
+	AttributionString(string) Interface
+	GetCommandString() string
+	GetAttributionString() string
 }
 
 // implementation for the context interface
 type Context struct {
+	// the full command used to generate the output as you would find it after a go:generate comment
+	generateCommandString string
+	// the name of the process responsible for generating output
+	generatedAttributionString string
+
 	// filestystem to read/write generated files
 	fs cgfs.FSInterface
 	// filesystem to load templates
 	templateFiles embed.FS
+}
+
+func (c *Context) CommandString(value string) Interface {
+	c.generateCommandString = value
+	return c
+}
+
+func (c *Context) AttributionString(value string) Interface {
+	c.generatedAttributionString = value
+	return c
+}
+
+func (c *Context) GetCommandString() string {
+	return c.generateCommandString
+}
+
+func (c *Context) GetAttributionString() string {
+	return c.generatedAttributionString
 }
 
 func (c *Context) FS() cgfs.FSInterface {

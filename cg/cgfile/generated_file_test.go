@@ -16,7 +16,7 @@ func snapshot_g(t *testing.T, fileName string) string {
 }
 
 func TestGeneratedFile(t *testing.T) {
-	f := cgfile.NewGeneratedFile(testDestination).Package(testPackageName)
+	f := cgfile.NewFile(testDestination).Package(testPackageName)
 	result, err := cgfile.MaybeSignFile(ctx(), f)
 	if err != nil {
 		t.Error(err)
