@@ -55,11 +55,11 @@ func TestImportFields(t *testing.T) {
 
 func checkImportFields(data *ImportFieldsTestData) error {
 	imp := data.input
-	if imp.Label != data.expectedLabel {
-		return fmt.Errorf("expected label to be %s, got %s", data.expectedLabel, imp.Label)
+	if imp.Label() != data.expectedLabel {
+		return fmt.Errorf("expected label to be %s, got %s", data.expectedLabel, imp.Label())
 	}
-	if imp.Source != data.expectedSource {
-		return fmt.Errorf("expected source to be %s, got %s", data.expectedSource, imp.Source)
+	if imp.Source() != data.expectedSource {
+		return fmt.Errorf("expected source to be %s, got %s", data.expectedSource, imp.Source())
 	}
 	if imp.DefaultLabel() != data.expectedDefaultLabel {
 		return fmt.Errorf("expected default label to be %s, got %s", data.expectedDefaultLabel, imp.DefaultLabel())

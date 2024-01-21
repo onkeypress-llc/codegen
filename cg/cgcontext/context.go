@@ -4,17 +4,8 @@ import (
 	"embed"
 
 	"github.com/onkeypress-llc/codegen/cg/cgfs"
+	"github.com/onkeypress-llc/codegen/cg/cgi"
 )
-
-// interface for the context object of a generation run
-type Interface interface {
-	FS() cgfs.FSInterface
-	TemplateFS() embed.FS
-	CommandString(string) Interface
-	AttributionString(string) Interface
-	GetCommandString() string
-	GetAttributionString() string
-}
 
 // implementation for the context interface
 type Context struct {
@@ -24,17 +15,21 @@ type Context struct {
 	generatedAttributionString string
 
 	// filestystem to read/write generated files
-	fs cgfs.FSInterface
+	fs cgi.FSInterface
 	// filesystem to load templates
 	templateFiles embed.FS
 }
 
-func (c *Context) CommandString(value string) Interface {
+func (c *Context) CommandString(value string) cgi.ContextInterface {
 	c.generateCommandString = value
 	return c
 }
 
-func (c *Context) AttributionString(value string) Interface {
+func (c *Context) GetImportNamespace(imp cgi.ImportInterface) (string, error) {
+	panic("not implemented")
+}
+
+func (c *Context) AttributionString(value string) cgi.ContextInterface {
 	c.generatedAttributionString = value
 	return c
 }
@@ -47,7 +42,7 @@ func (c *Context) GetAttributionString() string {
 	return c.generatedAttributionString
 }
 
-func (c *Context) FS() cgfs.FSInterface {
+func (c *Context) FS() cgi.FSInterface {
 	return c.fs
 }
 
@@ -55,7 +50,7 @@ func (c *Context) TemplateFS() embed.FS {
 	return c.templateFiles
 }
 
-func (c *Context) SetFS(fs cgfs.FSInterface) *Context {
+func (c *Context) SetFS(fs cgi.FSInterface) *Context {
 	c.fs = fs
 	return c
 }

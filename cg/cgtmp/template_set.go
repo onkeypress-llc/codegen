@@ -1,22 +1,24 @@
 package cgtmp
 
-type Templates struct {
+import "github.com/onkeypress-llc/codegen/cg/cgi"
+
+type TemplateSet struct {
 	hash        map[string]bool
 	orderedList []string
 }
 
-func (s *Templates) Size() int {
+func (s *TemplateSet) Size() int {
 	return len(s.orderedList)
 }
 
-func (s *Templates) AddTemplates(container *Templates) *Templates {
+func (s *TemplateSet) AddTemplates(container cgi.TemplateSetInterface) *TemplateSet {
 	if container == nil {
 		return s
 	}
 	return s.AddStrings(container.Names()...)
 }
 
-func (s *Templates) AddTemplate(list ...*Template) *Templates {
+func (s *TemplateSet) AddTemplate(list ...cgi.TemplateInterface) *TemplateSet {
 	names := make([]string, len(list))
 	for i := range list {
 		t := list[i]
@@ -25,7 +27,7 @@ func (s *Templates) AddTemplate(list ...*Template) *Templates {
 	return s.AddStrings(names...)
 }
 
-func (s *Templates) AddStrings(list ...string) *Templates {
+func (s *TemplateSet) AddStrings(list ...string) *TemplateSet {
 	for i := range list {
 		t := list[i]
 		_, ok := s.hash[t]
@@ -37,11 +39,11 @@ func (s *Templates) AddStrings(list ...string) *Templates {
 	return s
 }
 
-func (s *Templates) Names() []string {
+func (s *TemplateSet) Names() []string {
 	return s.orderedList
 }
 
-func NewSet(templates ...*Template) *Templates {
-	instance := &Templates{hash: make(map[string]bool), orderedList: make([]string, 0)}
+func NewSet(templates ...cgi.TemplateInterface) *TemplateSet {
+	instance := &TemplateSet{hash: make(map[string]bool), orderedList: make([]string, 0)}
 	return instance.AddTemplate(templates...)
 }

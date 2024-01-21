@@ -3,6 +3,8 @@ package cgfs
 import (
 	"errors"
 	"os"
+
+	"github.com/onkeypress-llc/codegen/cg/cgi"
 )
 
 type OSFS struct{}
@@ -32,6 +34,6 @@ func (fs *OSFS) Exists(filename string) bool {
 	return !errors.Is(err, os.ErrNotExist)
 }
 
-func NewOSFS() FSInterface {
+func NewOSFS() cgi.FSInterface {
 	return osFS
 }

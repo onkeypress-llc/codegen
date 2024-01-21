@@ -1,4 +1,4 @@
-package cgfs
+package cgi
 
 type FSInterface interface {
 	Exists(string) bool

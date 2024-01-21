@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/onkeypress-llc/codegen/cg/cgcontext"
+	"github.com/onkeypress-llc/codegen/cg/cgi"
 	"github.com/onkeypress-llc/codegen/cg/cgnode"
 )
 
@@ -14,7 +14,7 @@ type Docblock struct {
 	comment string
 }
 
-func (b *Docblock) ToString(ctx cgcontext.Interface) (string, error) {
+func (b *Docblock) ToString(ctx cgi.ContextInterface) (string, error) {
 	lines := docblockCreateLines(b.comment)
 	if len(lines) < 1 {
 		return "", nil
@@ -24,7 +24,7 @@ func (b *Docblock) ToString(ctx cgcontext.Interface) (string, error) {
 
 }
 
-func (b *Docblock) ToInterface() cgnode.NodeInterface {
+func (b *Docblock) ToInterface() cgi.NodeInterface {
 	return b
 }
 
@@ -32,7 +32,7 @@ func NewDocBlock(comments ...string) *Docblock {
 	return &Docblock{comment: strings.Join(comments, "\n")}
 }
 
-func (b *Docblock) Generate(c cgcontext.Interface) (cgnode.NodeOutputInterface, error) {
+func (b *Docblock) Generate(c cgi.ContextInterface) (cgi.NodeOutputInterface, error) {
 	return cgnode.StringOutput(b), nil
 }
 

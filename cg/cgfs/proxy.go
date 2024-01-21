@@ -1,5 +1,7 @@
 package cgfs
 
+import "github.com/onkeypress-llc/codegen/cg/cgi"
+
 type ProxyFS struct {
 	ReadFn   func(string) (string, error)
 	WriteFn  func(string, string) error
@@ -18,7 +20,7 @@ func (fs *ProxyFS) Exists(filename string) bool {
 	return fs.ExistsFn(filename)
 }
 
-func NewProxyFS() FSInterface {
+func NewProxyFS() cgi.FSInterface {
 	return &ProxyFS{ReadFn: NoopReadFn, WriteFn: NoopWriteFn, ExistsFn: NoopExistsFn}
 }
 

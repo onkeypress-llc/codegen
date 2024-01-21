@@ -3,6 +3,7 @@ package cgelement_test
 import (
 	"github.com/onkeypress-llc/codegen/cg/cgcontext"
 	"github.com/onkeypress-llc/codegen/cg/cgfs"
+	"github.com/onkeypress-llc/codegen/cg/cgi"
 	"github.com/onkeypress-llc/codegen/cg/cgtmp"
 )
 
@@ -11,13 +12,13 @@ import (
 // 	return true
 // }
 
-func ctx() cgcontext.Interface {
+func ctx() cgi.ContextInterface {
 	return cgcontext.New(cgtmp.TemplateFS()).SetFS(cgfs.NewMapFS())
 }
 
 // type errorNode struct{}
 
-// func (e *errorNode) Generate(ctx cgcontext.Interface) (cgnode.NodeOutputInterface[any], error) {
+// func (e *errorNode) Generate(ctx cgi.ContextInterface) (cgnode.NodeOutputInterface[any], error) {
 // 	return nil, fmt.Errorf("Error!")
 // }
 

@@ -4,15 +4,15 @@ import (
 	"fmt"
 
 	"github.com/onkeypress-llc/codegen/cg/cgcontext"
-	"github.com/onkeypress-llc/codegen/cg/cgfile"
+	"github.com/onkeypress-llc/codegen/cg/cgi"
 	"github.com/onkeypress-llc/codegen/cg/cgtmp"
 )
 
-func NewContext() cgcontext.Interface {
+func NewContext() cgi.ContextInterface {
 	return cgcontext.New(cgtmp.TemplateFS())
 }
 
-func Generate(ctx cgcontext.Interface, nodes ...cgfile.Interface) error {
+func Generate(ctx cgi.ContextInterface, nodes ...cgi.FileInterface) error {
 	errors := []error{}
 	for i := range nodes {
 		file := nodes[i]

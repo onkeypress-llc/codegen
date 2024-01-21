@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/onkeypress-llc/codegen/cg/cgcontext"
+	"github.com/onkeypress-llc/codegen/cg/cgi"
 )
 
 type ImportSet struct {
-	imports map[string]*Import
+	imports map[string]cgi.ImportInterface
 }
 
-func NewImportSet(imports ...*Import) *ImportSet {
+func NewImportSet(imports ...cgi.ImportInterface) *ImportSet {
 	set := &ImportSet{
-		imports: make(map[string]*Import, len(imports)),
+		imports: make(map[string]cgi.ImportInterface, len(imports)),
 	}
 	result, err := set.AddValues(imports)
 	if err != nil {
@@ -22,20 +22,20 @@ func NewImportSet(imports ...*Import) *ImportSet {
 	return result
 }
 
-func (s *ImportSet) Add(imports ...*Import) (*ImportSet, error) {
+func (s *ImportSet) Add(imports ...cgi.ImportInterface) (*ImportSet, error) {
 	return s.AddValues(imports)
 }
 
-func (s *ImportSet) AddValues(imports []*Import) (*ImportSet, error) {
+func (s *ImportSet) AddValues(imports []cgi.ImportInterface) (*ImportSet, error) {
 	for i := range imports {
 		imp := imports[i]
 		if imp == nil {
 			continue
 		}
-		key := imp.Label
+		key := imp.Label()
 		existing, ok := s.imports[key]
 		if !ok {
-			s.imports[imp.Label] = imp
+			s.imports[imp.Label()] = imp
 		} else if !existing.Equals(imp) {
 			return nil, fmt.Errorf("Unable to merge import %+v into existing set, %+v has conflicting name", imp, existing)
 		}
@@ -43,11 +43,15 @@ func (s *ImportSet) AddValues(imports []*Import) (*ImportSet, error) {
 	return s, nil
 }
 
-func (s *ImportSet) Generate(ctx cgcontext.Interface) (NodeOutputInterface, error) {
+func (s *ImportSet) ImportMap() map[string]cgi.ImportInterface {
+	return s.imports
+}
+
+func (s *ImportSet) Generate(ctx cgi.ContextInterface) (cgi.NodeOutputInterface, error) {
 	return StringOutput[*ImportSet](s), nil
 }
 
-func (s *ImportSet) ToString(ctx cgcontext.Interface) (string, error) {
+func (s *ImportSet) ToString(ctx cgi.ContextInterface) (string, error) {
 	length := len(s.imports)
 	if length < 1 {
 		return "", nil
@@ -64,13 +68,13 @@ func (s *ImportSet) ToString(ctx cgcontext.Interface) (string, error) {
 	return fmt.Sprintf("import (\n%s\n)", strings.Join(statements, "\n")), nil
 }
 
-func (s *ImportSet) MergeWith(other *ImportSet) (*ImportSet, error) {
+func (s *ImportSet) MergeWith(other cgi.ImportSetInterface) (*ImportSet, error) {
 	if other == nil {
 		return s, nil
 	}
-	values := make([]*Import, len(other.imports))
+	values := make([]cgi.ImportInterface, len(other.ImportMap()))
 	i := 0
-	for _, value := range other.imports {
+	for _, value := range other.ImportMap() {
 		values[i] = value
 		i++
 	}

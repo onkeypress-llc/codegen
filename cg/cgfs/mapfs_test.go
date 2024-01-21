@@ -10,7 +10,7 @@ import (
 func TestMapFSCreation(t *testing.T) {
 	fs := cgfs.NewMapFS()
 	if !isFSInterface(fs) {
-		t.Error("Expected cgfs.FSInterface")
+		t.Error("Expected cgi.FSInterface")
 	}
 }
 

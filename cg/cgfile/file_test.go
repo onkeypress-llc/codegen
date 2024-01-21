@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/onkeypress-llc/codegen/cg/cgfile"
+	"github.com/onkeypress-llc/codegen/cg/cgi"
 	"github.com/onkeypress-llc/codegen/cg/cgnode"
 )
 
@@ -60,7 +61,7 @@ func TestFileHeader(t *testing.T) {
 }
 
 // verify different types meet the interface requirement
-func isNode[T any](n cgnode.NodeInterface) bool {
+func isNode[T any](n cgi.NodeInterface) bool {
 	return true
 }
 

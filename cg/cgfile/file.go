@@ -3,11 +3,11 @@ package cgfile
 import (
 	"fmt"
 
-	"github.com/onkeypress-llc/codegen/cg/cgcontext"
+	"github.com/onkeypress-llc/codegen/cg/cge"
 	"github.com/onkeypress-llc/codegen/cg/cgelement"
+	"github.com/onkeypress-llc/codegen/cg/cgi"
 	"github.com/onkeypress-llc/codegen/cg/cgnode"
 	"github.com/onkeypress-llc/codegen/cg/cgtmp"
-	"github.com/onkeypress-llc/codegen/cg/signing"
 )
 
 const DefaultPackageName = "main"
@@ -20,13 +20,13 @@ type File struct {
 	// package at the top of file
 	packageName string
 	// manually added imports to file
-	imports *cgnode.ImportSet
+	imports cgi.ImportSetInterface
 	// set of content in the file
-	contents []cgnode.NodeInterface
+	contents []cgi.NodeInterface
 
 	allowWriteIfFormatFails bool
 
-	signer signing.SignedStringInterface
+	signer cgi.SignedStringInterface
 }
 
 // intentionally verbose
@@ -35,23 +35,23 @@ func NewFileWithoutGeneratorHeadersOrSigning(destination *Destination) *File {
 }
 
 func newFile(destination *Destination) *File {
-	return &File{imports: cgnode.NewImportSet(), destination: destination, packageName: DefaultPackageName, contents: []cgnode.NodeInterface{}}
+	return &File{imports: cgnode.NewImportSet(), destination: destination, packageName: DefaultPackageName, contents: []cgi.NodeInterface{}}
 }
 
-func (f *File) UsedImports() (*cgnode.ImportSet, error) {
+func (f *File) UsedImports() (cgi.ImportSetInterface, error) {
 	return f.imports, nil
 }
 
-func GoFileTemplates() *cgtmp.Templates {
+func GoFileTemplates() cgi.TemplateSetInterface {
 	return cgtmp.NewSet().AddTemplate(cgtmp.New("go-file-contents"), cgtmp.New("go-file-content"))
 }
 
-func (f *File) Generate(c cgcontext.Interface) (cgnode.NodeOutputInterface, error) {
+func (f *File) Generate(c cgi.ContextInterface) (cgi.NodeOutputInterface, error) {
 	imports, err := cgnode.NewImportSet().MergeWith(f.imports)
 	if err != nil {
 		return nil, err
 	}
-	contents := make([]cgnode.NodeOutputInterface, len(f.contents))
+	contents := make([]cgi.NodeOutputInterface, len(f.contents))
 	templates := cgtmp.NewSet().AddTemplates(GoFileTemplates())
 	// from file content blocks, aggragate imports, template names, and content
 	// add imports from file content blocks
@@ -92,21 +92,21 @@ func (f *File) Generate(c cgcontext.Interface) (cgnode.NodeOutputInterface, erro
 	).SetTemplates(templates), nil
 }
 
-func (f *File) generatedComments(ctx cgcontext.Interface) (*cgelement.LineComment, *cgelement.LineComment) {
+func (f *File) generatedComments(ctx cgi.ContextInterface) (*cgelement.LineComment, *cgelement.LineComment) {
 	signer := f.signer
 	if signer == nil {
 		return nil, nil
 	}
 	generateLine := cgelement.NewGoGenerateLineComment(ctx.GetCommandString())
-	if signer.SigningType() == signing.Full {
+	if signer.SigningType() == cge.Full {
 		return generateLine, cgelement.NewGeneratedFileLineComment(ctx.GetAttributionString())
-	} else if signer.SigningType() == signing.Partial {
+	} else if signer.SigningType() == cge.Partial {
 		return generateLine, nil
 	}
 	panic("Undefined generation case")
 }
 
-func (f *File) Save(c cgcontext.Interface) error {
+func (f *File) Save(c cgi.ContextInterface) error {
 	return Save(c, f)
 }
 
@@ -115,22 +115,14 @@ func (f *File) Package(packageName string) *File {
 	return f
 }
 
-func (f *File) Contents(contents []cgnode.NodeInterface) *File {
+func (f *File) Contents(contents []cgi.NodeInterface) *File {
 	f.contents = contents
 	return f
 }
 
-func (f *File) Add(nodes ...interface{}) *File {
+func (f *File) Add(nodes ...cgi.NodeInterface) *File {
 	if len(nodes) > 0 {
-		typedNodes := make([]cgnode.NodeInterface, len(nodes))
-		for i := range nodes {
-			node, ok := nodes[i].(cgnode.NodeInterface)
-			if !ok {
-				panic("Attempting to add content to file with unsupported interface")
-			}
-			typedNodes[i] = node
-		}
-		f.contents = append(f.contents, typedNodes...)
+		f.contents = append(f.contents, nodes...)
 
 	}
 	return f
@@ -159,7 +151,7 @@ func (f *File) HeaderString() string {
 	return signer.DocBlock(value)
 }
 
-func FormatFile(context cgcontext.Interface, file *File) (string, error) {
+func FormatFile(context cgi.ContextInterface, file *File) (string, error) {
 	value, err := cgnode.NodeToString(context, file)
 	if err != nil {
 		return "", err
@@ -167,7 +159,7 @@ func FormatFile(context cgcontext.Interface, file *File) (string, error) {
 	return FormatGoString(value)
 }
 
-func SignFile(context cgcontext.Interface, file *File) (string, error) {
+func SignFile(context cgi.ContextInterface, file *File) (string, error) {
 	formattedValue, err := FormatFile(context, file)
 	if err != nil {
 		return "", err
@@ -178,14 +170,14 @@ func SignFile(context cgcontext.Interface, file *File) (string, error) {
 	return file.signer.SignString(formattedValue)
 }
 
-func MaybeSignFile(context cgcontext.Interface, file *File) (string, error) {
+func MaybeSignFile(context cgi.ContextInterface, file *File) (string, error) {
 	if file.signer != nil {
 		return SignFile(context, file)
 	}
 	return FormatFile(context, file)
 }
 
-func Save(context cgcontext.Interface, file *File) error {
+func Save(context cgi.ContextInterface, file *File) error {
 	output, err := MaybeSignFile(context, file)
 	if err != nil {
 		return err
@@ -193,6 +185,6 @@ func Save(context cgcontext.Interface, file *File) error {
 	return file.destination.Write(context, output)
 }
 
-func (f *File) ToInterface() cgnode.NodeInterface {
+func (f *File) ToInterface() cgi.NodeInterface {
 	return f
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/onkeypress-llc/codegen/cg/cgcontext"
 	"github.com/onkeypress-llc/codegen/cg/cgfile"
 	"github.com/onkeypress-llc/codegen/cg/cgfs"
+	"github.com/onkeypress-llc/codegen/cg/cgi"
 	"github.com/onkeypress-llc/codegen/cg/cgtmp"
 )
 
@@ -27,7 +28,7 @@ func filePrint(content string) string {
 	return fmt.Sprintf("\n---\n%s\n---\n", content)
 }
 
-func ctx() cgcontext.Interface {
+func ctx() cgi.ContextInterface {
 	return cgcontext.New(cgtmp.TemplateFS()).SetFS(cgfs.NewMapFS())
 }
 

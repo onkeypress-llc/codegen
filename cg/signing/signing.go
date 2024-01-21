@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/onkeypress-llc/codegen/cg/cge"
+	"github.com/onkeypress-llc/codegen/cg/cgi"
 )
 
 var defaultToken = "<<SignedSource::%1*zOeVoAZle#+L!plEphiEmie@I>>"
@@ -15,25 +18,13 @@ var generatedTokenName = "generated"
 
 var generatedDocMessage = "This file is generated. Do not modify it manually!"
 
-type SignedStringInterface interface {
-	SigningToken() string
-	Pattern() *regexp.Regexp
-	TokenName() string
-	SignString(string) (string, error)
-	IsSigned(string) (bool, error)
-	Verify(string) (bool, error)
-	HasValidSignature(string) (bool, error)
-	DocBlock(string) string
-	SigningType() SigningType
-}
-
 type SignedString struct {
 	token        string
 	preprocess   func(string) string
 	tokenName    string
 	matchPattern *regexp.Regexp
 	docMessage   string
-	signingType  SigningType
+	signingType  cge.SigningType
 }
 
 type MatchResult struct {
@@ -46,15 +37,15 @@ func DefaultMatchPattern() *regexp.Regexp {
 }
 
 func New(tokenName, docMessage string) *SignedString {
-	return &SignedString{preprocess: preprocess, tokenName: tokenName, matchPattern: DefaultMatchPattern(), token: defaultToken, docMessage: docMessage, signingType: Full}
+	return &SignedString{preprocess: preprocess, tokenName: tokenName, matchPattern: DefaultMatchPattern(), token: defaultToken, docMessage: docMessage, signingType: cge.Full}
 }
 
-func NewGeneratedString() SignedStringInterface {
+func NewGeneratedString() cgi.SignedStringInterface {
 	return New(generatedTokenName, generatedDocMessage)
 }
 
-func NewPartiallyGeneratedString(begin, end string) SignedStringInterface {
-	return New(partiallyGeneratedTokenName, partiallyGeneratedDocMessage(begin, end)).setSigningType(Partial)
+func NewPartiallyGeneratedString(begin, end string) cgi.SignedStringInterface {
+	return New(partiallyGeneratedTokenName, partiallyGeneratedDocMessage(begin, end)).setSigningType(cge.Partial)
 }
 
 func (s *SignedString) SigningToken() string {
@@ -146,11 +137,11 @@ func (s *SignedString) DocBlock(comment string) string {
 	return strings.Join(append(sections, s.SigningToken()), "\n\n")
 }
 
-func (s *SignedString) SigningType() SigningType {
+func (s *SignedString) SigningType() cge.SigningType {
 	return s.signingType
 }
 
-func (s *SignedString) setSigningType(v SigningType) *SignedString {
+func (s *SignedString) setSigningType(v cge.SigningType) *SignedString {
 	s.signingType = v
 	return s
 }

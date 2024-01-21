@@ -3,7 +3,7 @@ package cgelement
 import (
 	"fmt"
 
-	"github.com/onkeypress-llc/codegen/cg/cgcontext"
+	"github.com/onkeypress-llc/codegen/cg/cgi"
 	"github.com/onkeypress-llc/codegen/cg/cgnode"
 )
 
@@ -14,7 +14,7 @@ type LineComment struct {
 
 const DefaultCommentPrefix = " "
 
-func (c *LineComment) ToString(ctx cgcontext.Interface) (string, error) {
+func (c *LineComment) ToString(ctx cgi.ContextInterface) (string, error) {
 	separator := " "
 	if c.noSpaceAfterSlash {
 		separator = ""
@@ -31,7 +31,7 @@ func (c *LineComment) SetSpaceAfterSlash(value bool) *LineComment {
 	return c
 }
 
-func (c *LineComment) Generate(ctx cgcontext.Interface) (cgnode.NodeOutputInterface, error) {
+func (c *LineComment) Generate(ctx cgi.ContextInterface) (cgi.NodeOutputInterface, error) {
 	return cgnode.StringOutput(c), nil
 }
 

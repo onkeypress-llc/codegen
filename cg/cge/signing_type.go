@@ -1,4 +1,4 @@
-package signing
+package cge
 
 type SigningType int
 

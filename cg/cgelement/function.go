@@ -5,6 +5,12 @@ package cgelement
 // 	"strings"
 // )
 
+type Function struct {
+	Name string
+	// todo: generics
+	MethodFor *Struct
+}
+
 // type TemplateFunction struct {
 // 	Imports      *Imports
 // 	Comment      string

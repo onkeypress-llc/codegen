@@ -1,21 +1,19 @@
 package cgnode
 
-import (
-	"github.com/onkeypress-llc/codegen/cg/cgcontext"
-)
+import "github.com/onkeypress-llc/codegen/cg/cgi"
 
 type NodeSet struct {
-	nodes []NodeInterface
+	nodes []cgi.NodeInterface
 }
 
-func (n *NodeSet) Generate(ctx cgcontext.Interface) (NodeOutputInterface, error) {
+func (n *NodeSet) Generate(ctx cgi.ContextInterface) (cgi.NodeOutputInterface, error) {
 	return nil, nil
 }
 
-func (s *NodeSet) ToInterface() NodeInterface {
+func (s *NodeSet) ToInterface() cgi.NodeInterface {
 	return s
 }
 
-func NewSet(nodes []NodeInterface) *NodeSet {
+func NewSet(nodes []cgi.NodeInterface) *NodeSet {
 	return &NodeSet{nodes: nodes}
 }
