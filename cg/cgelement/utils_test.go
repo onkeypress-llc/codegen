@@ -7,7 +7,7 @@ import (
 )
 
 // // verify different types meet the interface requirement
-// func isNode[T any](n cgnode.NodeInterface[any]) bool {
+// func isNode[T any](n cgnode.NodeInterface) bool {
 // 	return true
 // }
 

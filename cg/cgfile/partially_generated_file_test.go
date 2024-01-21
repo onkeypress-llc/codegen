@@ -25,6 +25,6 @@ func TestPartiallyGeneratedFile(t *testing.T) {
 	}
 	expected := snapshot_pg(t, "basic.snap")
 	if result != expected {
-		t.Errorf("Expected \n\n%s\n\ngot\n\n%s", expected, result)
+		t.Errorf(fileExpectation(expected, result))
 	}
 }

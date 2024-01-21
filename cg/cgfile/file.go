@@ -22,7 +22,7 @@ type File struct {
 	// manually added imports to file
 	imports *cgnode.ImportSet
 	// set of content in the file
-	contents []cgnode.NodeInterface[any]
+	contents []cgnode.NodeInterface
 
 	allowWriteIfFormatFails bool
 
@@ -35,7 +35,7 @@ func NewFileWithoutGeneratorHeadersOrSigning(destination *Destination) *File {
 }
 
 func newFile(destination *Destination) *File {
-	return &File{imports: cgnode.NewImportSet(), destination: destination, packageName: DefaultPackageName, contents: []cgnode.NodeInterface[any]{}}
+	return &File{imports: cgnode.NewImportSet(), destination: destination, packageName: DefaultPackageName, contents: []cgnode.NodeInterface{}}
 }
 
 func (f *File) UsedImports() (*cgnode.ImportSet, error) {
@@ -46,12 +46,12 @@ func GoFileTemplates() *cgtmp.Templates {
 	return cgtmp.NewSet().AddTemplate(cgtmp.New("go-file-contents"), cgtmp.New("go-file-content"))
 }
 
-func (f *File) Generate(c cgcontext.Interface) (cgnode.NodeOutputInterface[*FileData], error) {
+func (f *File) Generate(c cgcontext.Interface) (cgnode.NodeOutputInterface, error) {
 	imports, err := cgnode.NewImportSet().MergeWith(f.imports)
 	if err != nil {
 		return nil, err
 	}
-	contents := make([]cgnode.NodeOutputInterface[any], len(f.contents))
+	contents := make([]cgnode.NodeOutputInterface, len(f.contents))
 	templates := cgtmp.NewSet().AddTemplates(GoFileTemplates())
 	// from file content blocks, aggragate imports, template names, and content
 	// add imports from file content blocks
@@ -115,8 +115,24 @@ func (f *File) Package(packageName string) *File {
 	return f
 }
 
-func (f *File) Contents(contents []cgnode.NodeInterface[any]) *File {
+func (f *File) Contents(contents []cgnode.NodeInterface) *File {
 	f.contents = contents
+	return f
+}
+
+func (f *File) Add(nodes ...interface{}) *File {
+	if len(nodes) > 0 {
+		typedNodes := make([]cgnode.NodeInterface, len(nodes))
+		for i := range nodes {
+			node, ok := nodes[i].(cgnode.NodeInterface)
+			if !ok {
+				panic("Attempting to add content to file with unsupported interface")
+			}
+			typedNodes[i] = node
+		}
+		f.contents = append(f.contents, typedNodes...)
+
+	}
 	return f
 }
 
@@ -177,6 +193,6 @@ func Save(context cgcontext.Interface, file *File) error {
 	return file.destination.Write(context, output)
 }
 
-func (f *File) ToInterface() cgnode.NodeInterface[*FileData] {
+func (f *File) ToInterface() cgnode.NodeInterface {
 	return f
 }

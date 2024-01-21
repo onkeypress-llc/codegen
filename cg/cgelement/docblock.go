@@ -24,7 +24,7 @@ func (b *Docblock) ToString(ctx cgcontext.Interface) (string, error) {
 
 }
 
-func (b *Docblock) ToInterface() cgnode.NodeInterface[*Docblock] {
+func (b *Docblock) ToInterface() cgnode.NodeInterface {
 	return b
 }
 
@@ -32,7 +32,7 @@ func NewDocBlock(comments ...string) *Docblock {
 	return &Docblock{comment: strings.Join(comments, "\n")}
 }
 
-func (b *Docblock) Generate(c cgcontext.Interface) (cgnode.NodeOutputInterface[*Docblock], error) {
+func (b *Docblock) Generate(c cgcontext.Interface) (cgnode.NodeOutputInterface, error) {
 	return cgnode.StringOutput(b), nil
 }
 

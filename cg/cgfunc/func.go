@@ -11,7 +11,7 @@ type TemplateFunction struct {
 	ClassMember  *FunctionNameType
 	Arguments    []*FunctionNameType
 	ReturnValues []*FunctionNameType
-	Content      cgnode.NodeInterface[any]
+	Content      cgnode.NodeInterface
 }
 
 type FunctionNameType struct {
@@ -19,11 +19,11 @@ type FunctionNameType struct {
 	Type *cgnode.Type
 }
 
-func (f *TemplateFunction) Generate(ctx cgcontext.Interface) (cgnode.NodeOutputInterface[*TemplateFunctionOutput], error) {
+func (f *TemplateFunction) Generate(ctx cgcontext.Interface) (cgnode.NodeOutputInterface, error) {
 	return cgnode.StringOutput(&TemplateFunctionOutput{}), nil
 }
 
-func (f *TemplateFunction) ToInterface() cgnode.NodeInterface[*TemplateFunctionOutput] {
+func (f *TemplateFunction) ToInterface() cgnode.NodeInterface {
 	return f
 }
 

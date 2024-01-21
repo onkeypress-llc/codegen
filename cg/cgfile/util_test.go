@@ -20,7 +20,7 @@ func snapshot(t *testing.T, fs embed.FS, name string) string {
 }
 
 func fileExpectation(expected, actual string) string {
-	return fmt.Sprintf("Expected %s got %s", filePrint(expected), filePrint(actual))
+	return fmt.Sprintf("Expected\n\n%s\ngot\n%s\n", filePrint(expected), filePrint(actual))
 }
 
 func filePrint(content string) string {

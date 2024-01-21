@@ -43,7 +43,7 @@ func (s *ImportSet) AddValues(imports []*Import) (*ImportSet, error) {
 	return s, nil
 }
 
-func (s *ImportSet) Generate(ctx cgcontext.Interface) (NodeOutputInterface[*ImportSet], error) {
+func (s *ImportSet) Generate(ctx cgcontext.Interface) (NodeOutputInterface, error) {
 	return StringOutput[*ImportSet](s), nil
 }
 

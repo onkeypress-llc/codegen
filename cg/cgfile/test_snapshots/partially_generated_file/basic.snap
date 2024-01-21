@@ -1,6 +1,7 @@
+//go:generate
 /**
  * This file is partially generated. Only make modifications between BEGIN MANUAL SECTION and END MANUAL SECTION designators.
  *
- * @partially-generated SignedSource<<bb86c0cc6ce3c7c24439ea3d017d91942c8a7fa27c1fc459d6f047bd08bb633938f247184f82acf505c2a7b6093b4faf6a4d4b0acaaf94b6e24e3f35e29f92d7>>
+ * @partially-generated SignedSource<<5806f7533cd098d5186e31053b2e78e6713d22a038e177007ed0a8949218a731f2a3af2933d0e050ba4f9bc6bdc0c73ac64e26674873661391808f09577577d5>>
  */
 package foopackage

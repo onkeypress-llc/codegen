@@ -21,3 +21,4 @@
 go.work
 
 /cg/cgfs/fstestdir/**
+/demo/*.gen.go

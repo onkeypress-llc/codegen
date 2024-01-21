@@ -26,6 +26,10 @@ type NodeWithTemplate interface {
 	Templates() *cgtmp.Templates
 }
 
+type NodeWithUntypedData interface {
+	UntypedData() any
+}
+
 type NodeWithData[D any] interface {
 	// the data to be used
 	Data() D
@@ -35,12 +39,17 @@ type NodeWithStringOutput interface {
 	ToString(cgcontext.Interface) (string, error)
 }
 
-type NodeOutputInterface[D any] interface {
+type NodeOutputInterface interface {
 	NodeWithName
 	NodeWithImports
 	NodeWithTemplate
-	NodeWithData[D]
 	NodeWithStringOutput
+	NodeWithUntypedData
+}
+
+type NodeOutputWithTypedDataInterface[D any] interface {
+	NodeOutputInterface
+	NodeWithData[D]
 }
 
 type NodeOutput[D any] struct {
@@ -88,11 +97,19 @@ func (o *NodeOutput[D]) ToString(ctx cgcontext.Interface) (string, error) {
 	return o.toStringFunction(ctx, o)
 }
 
+func (o *NodeOutput[D]) UntypedData() any {
+	return o.data
+}
+
 func (o *NodeOutput[D]) Data() D {
 	return o.data
 }
 
-func (o *NodeOutput[D]) ToInterface() NodeOutputInterface[D] {
+func (o *NodeOutput[D]) ToInterface() NodeOutputInterface {
+	return o
+}
+
+func (o *NodeOutput[D]) ToTypedInterface() NodeOutputWithTypedDataInterface[D] {
 	return o
 }
 
@@ -133,9 +150,9 @@ func GetTypeString(instance interface{}) string {
 	}
 }
 
-func ExecuteTemplate[D any](ctx cgcontext.Interface, obj NodeOutputInterface[D]) (string, error) {
+func ExecuteTemplate(ctx cgcontext.Interface, obj NodeOutputInterface) (string, error) {
 	templates := cgtmp.NewSet(obj.Template()).AddTemplates(obj.Templates())
-	data := obj.Data()
+	data := obj.UntypedData()
 
 	tmp, err := template.New("").Funcs(map[string]any{
 		// convenience method for

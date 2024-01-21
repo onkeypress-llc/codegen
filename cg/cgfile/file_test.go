@@ -60,7 +60,7 @@ func TestFileHeader(t *testing.T) {
 }
 
 // verify different types meet the interface requirement
-func isNode[T any](n cgnode.NodeInterface[*cgfile.FileData]) bool {
+func isNode[T any](n cgnode.NodeInterface) bool {
 	return true
 }
 

@@ -31,7 +31,7 @@ func (c *LineComment) SetSpaceAfterSlash(value bool) *LineComment {
 	return c
 }
 
-func (c *LineComment) Generate(ctx cgcontext.Interface) (cgnode.NodeOutputInterface[*LineComment], error) {
+func (c *LineComment) Generate(ctx cgcontext.Interface) (cgnode.NodeOutputInterface, error) {
 	return cgnode.StringOutput(c), nil
 }
 

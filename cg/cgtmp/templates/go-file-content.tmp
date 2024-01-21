@@ -1,4 +1,4 @@
-{{$TemplateName := .TemplateName}}
+{{$TemplateName := .Template.Name}}
 {{if eq $TemplateName "string" }}
 {{ stringify . }}
 {{else if eq $TemplateName "definition" }}
