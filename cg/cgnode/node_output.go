@@ -1,9 +1,7 @@
 package cgnode
 
 import (
-	"bytes"
 	"reflect"
-	"text/template"
 
 	"github.com/onkeypress-llc/codegen/cg/cgi"
 	"github.com/onkeypress-llc/codegen/cg/cgtmp"
@@ -41,7 +39,7 @@ func (o *NodeOutput[D]) UsedImports() (cgi.ImportSetInterface, error) {
 	return o.imports, nil
 }
 
-func (o *NodeOutput[D]) SetUsedImports(imports *ImportSet) *NodeOutput[D] {
+func (o *NodeOutput[D]) SetUsedImports(imports cgi.ImportSetInterface) *NodeOutput[D] {
 	o.imports = imports
 	return o
 }
@@ -75,28 +73,11 @@ func Output[D any](template *cgtmp.Template, data D) *NodeOutput[D] {
 }
 
 func NodeObjectExecuteTemplate[D any](ctx cgi.ContextInterface, obj *NodeOutput[D]) (string, error) {
-	return ExecuteTemplate(ctx, obj)
+	return cgtmp.ExecuteTemplate(ctx, obj)
 }
 
 func NodeObjectDataToString[D cgi.NodeWithStringOutput](ctx cgi.ContextInterface, obj *NodeOutput[D]) (string, error) {
 	return obj.data.ToString(ctx)
-}
-
-func MergedImports(nodes ...cgi.NodeWithImports) (*ImportSet, error) {
-	set := NewImportSet()
-	for i := range nodes {
-		usedImports, err := nodes[i].UsedImports()
-		if err != nil {
-			return nil, err
-		}
-		result, err := set.MergeWith(usedImports)
-		if err != nil {
-			return nil, err
-		}
-		set = result
-	}
-
-	return set, nil
 }
 
 func GetTypeString(instance interface{}) string {
@@ -105,33 +86,4 @@ func GetTypeString(instance interface{}) string {
 	} else {
 		return t.Name()
 	}
-}
-
-func ExecuteTemplate(ctx cgi.ContextInterface, obj cgi.NodeOutputInterface) (string, error) {
-	templates := cgtmp.NewSet(obj.Template()).AddTemplates(obj.Templates())
-	data := obj.UntypedData()
-
-	tmp, err := template.New("").Funcs(map[string]any{
-		// convenience method for
-		"context": func() cgi.ContextInterface {
-			return ctx
-		},
-		"stringify": func(o cgi.NodeWithStringOutput) (string, error) {
-			if o == nil {
-				return "", nil
-			}
-			return o.ToString(ctx)
-		},
-	}).ParseFS(ctx.TemplateFS(), templates.Names()...)
-	if err != nil {
-		return "", err
-	}
-
-	var buffer bytes.Buffer
-	err = tmp.ExecuteTemplate(&buffer, obj.Template().NameWithExtension(), data)
-	if err != nil {
-		return "", err
-	}
-
-	return buffer.String(), nil
 }

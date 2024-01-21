@@ -1,10 +1,11 @@
-package cgnode
+package cgelement
 
 import (
 	"fmt"
 	"strings"
 
 	"github.com/onkeypress-llc/codegen/cg/cgi"
+	"github.com/onkeypress-llc/codegen/cg/cgnode"
 )
 
 type ImportSet struct {
@@ -48,7 +49,7 @@ func (s *ImportSet) ImportMap() map[string]cgi.ImportInterface {
 }
 
 func (s *ImportSet) Generate(ctx cgi.ContextInterface) (cgi.NodeOutputInterface, error) {
-	return StringOutput[*ImportSet](s), nil
+	return cgnode.StringOutput[*ImportSet](s), nil
 }
 
 func (s *ImportSet) ToString(ctx cgi.ContextInterface) (string, error) {

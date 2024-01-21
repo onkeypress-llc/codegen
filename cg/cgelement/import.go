@@ -1,4 +1,4 @@
-package cgnode
+package cgelement
 
 import (
 	"fmt"

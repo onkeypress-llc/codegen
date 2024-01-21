@@ -5,4 +5,5 @@ type ImportInterface interface {
 	Label() string
 	Equals(ImportInterface) bool
 	String() string
+	DefaultLabel() string
 }

@@ -35,7 +35,7 @@ func NewFileWithoutGeneratorHeadersOrSigning(destination *Destination) *File {
 }
 
 func newFile(destination *Destination) *File {
-	return &File{imports: cgnode.NewImportSet(), destination: destination, packageName: DefaultPackageName, contents: []cgi.NodeInterface{}}
+	return &File{imports: cgelement.NewImportSet(), destination: destination, packageName: DefaultPackageName, contents: []cgi.NodeInterface{}}
 }
 
 func (f *File) UsedImports() (cgi.ImportSetInterface, error) {
@@ -47,7 +47,7 @@ func GoFileTemplates() cgi.TemplateSetInterface {
 }
 
 func (f *File) Generate(c cgi.ContextInterface) (cgi.NodeOutputInterface, error) {
-	imports, err := cgnode.NewImportSet().MergeWith(f.imports)
+	imports, err := cgelement.NewImportSet().MergeWith(f.imports)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (f *File) AllowWriteIfFormatFails() *File {
 	return f
 }
 
-func (f *File) ImportsUsed(imports *cgnode.ImportSet) (*File, error) {
+func (f *File) ImportsUsed(imports *cgelement.ImportSet) (*File, error) {
 	f.imports = imports
 	return f, nil
 }

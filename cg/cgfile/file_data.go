@@ -3,7 +3,6 @@ package cgfile
 import (
 	"github.com/onkeypress-llc/codegen/cg/cgelement"
 	"github.com/onkeypress-llc/codegen/cg/cgi"
-	"github.com/onkeypress-llc/codegen/cg/cgnode"
 )
 
 type FileData struct {
@@ -16,7 +15,7 @@ type FileData struct {
 	// package of this file
 	PackageName string
 	// union of imports used in the file
-	Imports *cgnode.ImportSet
+	Imports cgi.ImportSetInterface
 	// set of content in the file
 	Contents []cgi.NodeOutputInterface
 }
