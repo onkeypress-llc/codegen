@@ -14,7 +14,8 @@ type NodeOutput[D any] struct {
 	templates cgi.TemplateSetInterface
 	imports   cgi.ImportSetInterface
 
-	toStringFunction func(cgi.ContextInterface, *NodeOutput[D]) (string, error)
+	toStringFunction          func(cgi.ContextInterface, cgi.NodeOutputWithTypedDataInterface[D]) (string, error)
+	prepareContextForToString func(cgi.ContextInterface, cgi.NodeOutputWithTypedDataInterface[D]) cgi.ContextInterface
 }
 
 func (o *NodeOutput[D]) Name() string {
@@ -49,6 +50,10 @@ func (o *NodeOutput[D]) Template() cgi.TemplateInterface {
 }
 
 func (o *NodeOutput[D]) ToString(ctx cgi.ContextInterface) (string, error) {
+	prepareFn := o.prepareContextForToString
+	if prepareFn != nil {
+		ctx = prepareFn(ctx, o)
+	}
 	return o.toStringFunction(ctx, o)
 }
 
@@ -68,16 +73,21 @@ func (o *NodeOutput[D]) ToTypedInterface() cgi.NodeOutputWithTypedDataInterface[
 	return o
 }
 
+func (o *NodeOutput[D]) ContextForToString(prepareFn func(cgi.ContextInterface, cgi.NodeOutputWithTypedDataInterface[D]) cgi.ContextInterface) cgi.NodeOutputWithTypedDataInterface[D] {
+	o.prepareContextForToString = prepareFn
+	return o
+}
+
 func Output[D any](template *cgtmp.Template, data D) *NodeOutput[D] {
 	return &NodeOutput[D]{data: data, template: template, name: GetTypeString(data), templates: cgtmp.NewSet(), toStringFunction: NodeObjectExecuteTemplate[D]}
 }
 
-func NodeObjectExecuteTemplate[D any](ctx cgi.ContextInterface, obj *NodeOutput[D]) (string, error) {
+func NodeObjectExecuteTemplate[D any](ctx cgi.ContextInterface, obj cgi.NodeOutputWithTypedDataInterface[D]) (string, error) {
 	return cgtmp.ExecuteTemplate(ctx, obj)
 }
 
-func NodeObjectDataToString[D cgi.NodeWithStringOutput](ctx cgi.ContextInterface, obj *NodeOutput[D]) (string, error) {
-	return obj.data.ToString(ctx)
+func NodeObjectDataToString[D cgi.NodeWithStringOutput](ctx cgi.ContextInterface, obj cgi.NodeOutputWithTypedDataInterface[D]) (string, error) {
+	return obj.Data().ToString(ctx)
 }
 
 func GetTypeString(instance interface{}) string {

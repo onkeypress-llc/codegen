@@ -11,8 +11,8 @@ import (
 func main() {
 	demoDirectory := "./demo"
 	err := cg.Generate(
-		cg.NewContext().AttributionString("by demo script;"),
-		cgfile.NewFile(cgfile.NewDestination("fully-generated.gen.go", demoDirectory)).Add(
+		cg.NewContext().AttributionString("by demo script;").CommandString("make demo"),
+		cgfile.NewFile(cgfile.NewDestination("generated.gen.go", demoDirectory)).Add(
 			cgelement.NewRawText(`
 			var i = 0
 			func Foo() {
@@ -21,7 +21,7 @@ func main() {
 			`),
 		),
 		cgfile.NewPartiallyGeneratedFile(cgfile.NewDestination("partially-generated.gen.go", demoDirectory)),
-		cgfile.NewFileWithoutGeneratorHeadersOrSigning(cgfile.NewDestination("vanilla.gen.go", demoDirectory)),
+		cgfile.NewFileWithoutGeneratorHeadersOrSigning(cgfile.NewDestination("undecorated.gen.go", demoDirectory)),
 	)
 	if err != nil {
 		fmt.Print(err)

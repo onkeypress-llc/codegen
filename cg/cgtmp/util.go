@@ -3,7 +3,7 @@ package cgtmp
 import (
 	"bytes"
 	"embed"
-	"html/template"
+	"text/template"
 
 	"github.com/onkeypress-llc/codegen/cg/cgi"
 )
@@ -20,10 +20,11 @@ func ExecuteTemplate(ctx cgi.ContextInterface, obj cgi.NodeOutputInterface) (str
 	data := obj.UntypedData()
 
 	tmp, err := template.New("").Funcs(map[string]any{
-		// convenience method for
+		// retrive context from within a template
 		"context": func() cgi.ContextInterface {
 			return ctx
 		},
+		// convenience method for converting object into string
 		"stringify": func(o cgi.NodeWithStringOutput) (string, error) {
 			if o == nil {
 				return "", nil

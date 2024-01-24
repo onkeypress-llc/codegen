@@ -48,6 +48,10 @@ func (s *ImportSet) ImportMap() map[string]cgi.ImportInterface {
 	return s.imports
 }
 
+func (s *ImportSet) GetNamespaceForImport(imp cgi.ImportInterface) string {
+	return ""
+}
+
 func (s *ImportSet) Generate(ctx cgi.ContextInterface) (cgi.NodeOutputInterface, error) {
 	return cgnode.StringOutput[*ImportSet](s), nil
 }

@@ -18,6 +18,12 @@ type Context struct {
 	fs cgi.FSInterface
 	// filesystem to load templates
 	templateFiles embed.FS
+
+	// the file the context for the output
+	// the current package source of the file
+	currentSource string
+	// the file import set being used
+	currentImportSet cgi.ImportSetInterface
 }
 
 func (c *Context) CommandString(value string) cgi.ContextInterface {
@@ -26,7 +32,12 @@ func (c *Context) CommandString(value string) cgi.ContextInterface {
 }
 
 func (c *Context) GetImportNamespace(imp cgi.ImportInterface) (string, error) {
-	panic("not implemented")
+	currentSource, currentImportSet := c.currentSource, c.currentImportSet
+	// if import is for a type in the same package, no namespace qualification needed
+	if imp.Source() == currentSource {
+		return "", nil
+	}
+	return currentImportSet.GetNamespaceForImport(imp), nil
 }
 
 func (c *Context) AttributionString(value string) cgi.ContextInterface {
@@ -60,6 +71,24 @@ func (c *Context) SetTemplateFS(fs embed.FS) *Context {
 	return c
 }
 
+func (c *Context) WithinFile(source string, importSet cgi.ImportSetInterface) cgi.ContextInterface {
+	newContext := Copy(c)
+	newContext.currentSource = source
+	newContext.currentImportSet = importSet
+	return newContext
+}
+
 func New(templateFiles embed.FS) *Context {
 	return &Context{fs: cgfs.NewOSFS(), templateFiles: templateFiles}
+}
+
+func Copy(ctx *Context) *Context {
+	return &Context{
+		generateCommandString:      ctx.generateCommandString,
+		generatedAttributionString: ctx.generatedAttributionString,
+		fs:                         ctx.fs,
+		templateFiles:              ctx.templateFiles,
+		currentSource:              ctx.currentSource,
+		currentImportSet:           ctx.currentImportSet,
+	}
 }

@@ -89,7 +89,11 @@ func (f *File) Generate(c cgi.ContextInterface) (cgi.NodeOutputInterface, error)
 			Imports:                  imports,
 			Contents:                 contents,
 		},
-	).SetTemplates(templates), nil
+	).SetTemplates(templates).ContextForToString(configureContext), nil
+}
+
+func configureContext(ctx cgi.ContextInterface, output cgi.NodeOutputWithTypedDataInterface[*FileData]) cgi.ContextInterface {
+	return ctx.WithinFile(output.Data().PackageName, output.Data().Imports)
 }
 
 func (f *File) generatedComments(ctx cgi.ContextInterface) (*cgelement.LineComment, *cgelement.LineComment) {

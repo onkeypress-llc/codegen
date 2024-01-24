@@ -16,7 +16,15 @@ fmt:
 	go mod tidy
 	# Format the Go sources:
 	go fmt ./...
+
+.PHONY: build
 build:
 	go build -o gencode
+
+.PHONY: pub
 pub: build
 	cp ./gencode $$GOPATH/bin/gencode
+
+.PHONY: demo
+demo:
+	go run ./demo/**
